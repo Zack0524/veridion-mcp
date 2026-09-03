@@ -1,0 +1,53 @@
+name: Transparency log
+
+# Once a day, after Veridion's 07:40 UTC snapshot, read the public status
+# endpoint and commit that day's export commitment (sha256 of the file and
+# the Merkle root over every row's content_hash) to this repository. Git
+# history on a public repository is the record: rewriting it is visible to
+# every clone. The run fails, and writes nothing, when the export is not
+# ready, has no root, or disagrees with a line already in the log.
+#
+# The only credential is this repository's own GITHUB_TOKEN with
+# contents: write. No Veridion secret is involved; the endpoint is public.
+
+on:
+  schedule:
+    - cron: "30 8 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: transparency-log
+  cancel-in-progress: false
+
+jobs:
+  commit-daily-root:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Append today's commitment
+        id: append
+        run: |
+          set -o pipefail
+          node transparency-log/append.mjs | tee append.json
+          echo "action=$(node -e 'console.log(JSON.parse(require("fs").readFileSync("append.json","utf8")).action)')" >> "$GITHUB_OUTPUT"
+          echo "line=$(node -e 'console.log(JSON.parse(require("fs").readFileSync("append.json","utf8")).line)')" >> "$GITHUB_OUTPUT"
+
+      - name: Commit and push
+        if: steps.append.outputs.action == 'appended'
+        run: |
+          git config user.name "veridion-transparency-log"
+          git config user.email "support@veridionmarkets.com"
+          git add transparency-log/log.txt
+          git commit -m "log: ${{ steps.append.outputs.line }}"
+          git push origin HEAD:main
