@@ -2,3 +2,4 @@
 # appended by .github/workflows/transparency-log.yml, never rewritten.
 # <snapshot_day> generation=<n> rows=<n> sha256=<file sha256> root=<merkle root> basis=<content_hash basis> generated_at=<iso>
 2026-09-03 generation=574 rows=64708 sha256=8147439394800b8da94684e0f3b4f9086aadcfad6e64b5277d784c557ceb3af5 root=147e8c24067968874ebf6844c6025c046c0ee989def938d915f38cd1a0e96b64 basis=veridion-disclosure-content-v1 generated_at=2026-09-03T14:13:02.729+00:00
+2026-09-04 generation=614 rows=64815 sha256=0184caa4601970a6875e11d5372272a1b0a3df9c3a3c2a634fff942069937dd6 root=a4d58a6998712a617d854165b2b0a54c82927549d5d081e8e5b0f310d07c1ec5 basis=veridion-disclosure-content-v1 generated_at=2026-09-04T07:42:00.71+00:00
