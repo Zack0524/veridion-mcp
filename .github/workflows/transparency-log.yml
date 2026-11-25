@@ -7,6 +7,10 @@ name: Transparency log
 # every clone. The run fails, and writes nothing, when the export is not
 # ready, has no root, or disagrees with a line already in the log.
 #
+# Each appended day is also timestamped by independent RFC 3161 time-stamp
+# authorities over the whole log file, so the date a line existed does not
+# rest on git metadata or on Veridion. See transparency-log/TIMESTAMPS.md.
+#
 # The only credential is this repository's own GITHUB_TOKEN with
 # contents: write. No Veridion secret is involved; the endpoint is public.
 
@@ -43,11 +47,15 @@ jobs:
           echo "action=$(node -e 'console.log(JSON.parse(require("fs").readFileSync("append.json","utf8")).action)')" >> "$GITHUB_OUTPUT"
           echo "line=$(node -e 'console.log(JSON.parse(require("fs").readFileSync("append.json","utf8")).line)')" >> "$GITHUB_OUTPUT"
 
+      - name: Timestamp the log (RFC 3161, two independent authorities)
+        if: steps.append.outputs.action == 'appended'
+        run: bash transparency-log/timestamp.sh
+
       - name: Commit and push
         if: steps.append.outputs.action == 'appended'
         run: |
           git config user.name "veridion-transparency-log"
           git config user.email "support@veridionmarkets.com"
-          git add transparency-log/log.txt
+          git add -A transparency-log
           git commit -m "log: ${{ steps.append.outputs.line }}"
           git push origin HEAD:main
